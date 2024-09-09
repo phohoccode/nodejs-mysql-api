@@ -1,10 +1,11 @@
 const mysql = require('mysql2')
+require('dotenv').config()
 
 const pool = mysql.createPool({
-    host: "bzhbvlu6wsgbwwxivoig-mysql.services.clever-cloud.com",
-    user: "u5ybgsfhnqalimlp",
-    password: "3Ra5zOPHgy1sMxp6rpSj",
-    database: "bzhbvlu6wsgbwwxivoig",
+    host: process.env.DB_HOST,
+    user: process.env.DB_USERNAME,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
@@ -15,6 +16,7 @@ pool.getConnection((err, conn) => {
         console.log(err)
         return
     }
+    console.log(process.env)
     console.log("Connected successfully")
 })
 
