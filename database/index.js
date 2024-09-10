@@ -16,7 +16,6 @@ pool.getConnection((err, conn) => {
         console.log(err)
         return
     }
-    console.log(process.env)
     console.log("Connected successfully")
 })
 
