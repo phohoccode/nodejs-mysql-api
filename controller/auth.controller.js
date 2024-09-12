@@ -1,5 +1,5 @@
+require('dotenv').config()
 const pool = require("../database/index")
-const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
 const authController = {
@@ -43,16 +43,23 @@ const authController = {
             const [user,] = await pool.query("select * from Users where email = ? and password = ?", [email, password])
 
             console.log(user[0]);
-            if (user.length !== 0) {
-                return res.json({
+            if (user[0]) {
+                const payload = {
+                    id: user[0].id,
+                    email: user[0].email,
+                    username: user[0].username,
+                }
+
+                const token =
+                    jwt.sign(payload, process.env.TOKEN_PAYLOAD, { expiresIn: '24h' })
+
+                // cookie sống được trong 24h
+                res.cookie('phohoccode', token, { httpOnly: true, maxAge: 86400000  });
+
+                return res.status(200).json({
                     EC: 0,
                     EM: 'Đăng nhập thành công!',
-                    DT: {
-                        id: user[0].id,
-                        email: user[0].email,
-                        username: user[0].username,
-                        created_at: user[0].created_at
-                    }
+                    DT: ''
                 })
             } else {
                 return res.json({
@@ -61,27 +68,6 @@ const authController = {
                     DT: ''
                 })
             }
-            // if (!user[0]) return res.json({ error: "Invalid email!" })
-
-            // const { password: hash, id, name } = user[0]
-
-            // const check = await bcrypt.compare(password, hash)
-
-            // if (check) {
-            //     const accessToken = jwt.sign({ userId: id }, '3812932sjad34&*@', { expiresIn: '1h' });
-            //     return res.json({ 
-            //         accessToken,
-            //         data: { 
-            //             userId: id,
-            //             name,
-            //             email
-            //         }
-            //      })
-
-            // }
-
-            // return res.json({ error: "Wrong password!" })
-
         } catch (error) {
             console.log(error)
             return res.json({
@@ -91,6 +77,63 @@ const authController = {
             })
         }
     },
+    logout: (req, res) => {
+        try {
+            res.clearCookie("phohoccode")
+            return res.status(200).json({
+                EM: 'Đăng xuất thành công',
+                EC: 0,
+                DT: ''
+            })
+        } catch (error) {
+            console.log(error)
+            return res.json({
+                EC: -1,
+                EM: 'Lỗi server!',
+                DT: ''
+            })
+        }
+    },
+    decodeToken: (req, res) => {
+        try {
+            const cookies = req.cookies
+            const key = process.env.TOKEN_PAYLOAD
+
+            if (!cookies.phohoccode) {
+                console.log('Token không tồn tại!')
+                return res.json({
+                    EC: 1,
+                    EM: 'Token không tồn tại!',
+                    DT: ''
+                })
+            }
+
+            const decoded = jwt.verify(cookies.phohoccode, key)
+
+            if (decoded) {
+                return res.json({
+                    EC: 0,
+                    EM: 'Xác minh người dùng thành công',
+                    DT: {
+                        account: decoded
+                    }
+                })
+            } else {
+                return res.json({
+                    EC: -2,
+                    EM: 'Xác minh người dùng thất bại!',
+                    DT: ''
+                })
+            }
+        } catch (error) {
+            console.log(error)
+            return res.json({
+                EC: -1,
+                EM: 'Lỗi server!',
+                DT: ''
+            })
+        }
+    }
 }
 
 module.exports = authController

@@ -7,27 +7,48 @@ const postsController = {
 
             if (posts.length > 0) {
                 const userIds = posts.map(post => post.user_id);
+                const postIds = posts.map(post => post.id)
+
                 const [users] = await pool.query(
                     `SELECT id, username FROM Users WHERE id IN (${userIds.join(',')})`
                 );
-    
-    
-                // Xây dựng lại dữ liệu bài viết với thông tin username
-                const postsWithUsername = posts.map(post => {
+                
+                const [comments] = await pool.query(
+                    `SELECT id, post_id, user_id FROM Comments WHERE post_id IN (${postIds.join(',')})`
+                );
+
+                const [likes] = await pool.query(
+                    `SELECT id, post_id, user_id FROM Likes WHERE post_id IN (${postIds.join(',')})`
+                )
+
+                const builtDataPosts = posts.map(post => {
                     const user = users.find(user => user.id === post.user_id);
+                    const countComment = comments.filter(comment => comment.post_id === post.id)
+                    const likePosts = likes.filter(like => like.post_id === post.id)
+                    const finalLikePost = likePosts.map(likePost => {
+                        const user = users.find(user => user.id === likePost.user_id)
+
+                        return {
+                            ...likePost,
+                            userLikePost: user.username
+                        }
+                    })
+                    
                     return {
                         ...post,
-                        username: user ? user.username : 'Unknown'
+                        username: user ? user.username : 'Unknown',
+                        countComment: countComment.length,
+                        finalLikePost
                     };
                 });
     
-                res.json({
+                return res.json({
                     EC: 0,
                     EM: 'Lấy danh sách bài viết thành công!',
-                    DT: postsWithUsername
+                    DT: builtDataPosts.reverse()
                 })
             } else {
-                res.json({
+                return res.json({
                     EC: 0,
                     EM: 'Lấy danh sách bài viết thành công!',
                     DT: []
@@ -36,7 +57,7 @@ const postsController = {
           
         } catch (error) {
             console.log(error)
-            res.json({
+            return res.json({
                 EC: 1,
                 EM: 'Lỗi server',
                 DT: []
@@ -47,22 +68,22 @@ const postsController = {
         try {
             const { id } = req.params
             const [rows, fields] = await pool.query("select * from posts where id = ?", [id])
-            res.json({
+            return res.json({
                 data: rows
             })
         } catch (error) {
             console.log(error)
-            res.json({
+            return res.json({
                 status: "error"
             })
         }
     },
     create: async (req, res) => {
         try {
-            const { userId, title, content } = req.body
+            const { id, title, content } = req.body
             const sql = "insert into Posts (user_id, title, content) values (?,?, ?)"
-            const [rows, fields] = await pool.query(sql, [userId, title, content])
-            res.json({
+            const [rows, fields] = await pool.query(sql, [id, title, content])
+            return res.json({
                 EC: 0,
                 EM: 'Tạo bài viết thành công',
                 DT: []
@@ -70,7 +91,7 @@ const postsController = {
         } catch (error) {
             console.log(error)
             console.log(error)
-            res.json({
+            return res.json({
                 EC: 1,
                 EM: 'Lỗi server',
                 DT: []
@@ -85,14 +106,14 @@ const postsController = {
             const sql = "update Posts set title = ?, content = ? where id = ?"
             await pool.query(sql, [title, content, id])
 
-            res.json({
+            return res.json({
                 EC: 0,
                 EM: 'Cập nhật bài viết thành công!',
                 DT: []
             })
         } catch (error) {
             console.log(error)
-            res.json({
+            return res.json({
                 EC: 1,
                 EM: 'Lỗi server',
                 DT: []
@@ -106,14 +127,14 @@ const postsController = {
             const sql = "delete from Posts where id = ?"
             await pool.query(sql, [id])
 
-            res.json({
+            return res.json({
                 EC: 0,
                 EM: 'Xoá bài viết thành công',
                 DT: []
             })
         } catch (error) {
             console.log(error)
-            res.json({
+            return res.json({
                 EC: 1,
                 EM: 'Lỗi server',
                 DT: []

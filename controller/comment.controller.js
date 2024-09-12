@@ -21,13 +21,13 @@ const commentController = {
                         username: user ? user.username : 'Unknown'
                     };
                 });
-                res.json({
+                return res.json({
                     EC: 0,
                     EM: 'Lấy danh sách bình luận thành công!',
                     DT: commentsWithUsername
                 })
             } else {
-                res.json({
+                return res.json({
                     EC: 0,
                     EM: 'Lấy danh sách bình luận thành công!',
                     DT: []
@@ -35,7 +35,7 @@ const commentController = {
             }
         } catch (error) {
             console.log(error)
-            res.json({
+            return res.json({
                 EC: 1,
                 EM: 'Lỗi server',
                 DT: []
@@ -48,14 +48,14 @@ const commentController = {
             const sql = "insert into Comments (post_id, user_id, content) value (?,?,?)"
             await pool.query(sql, [postId, userId, content])
 
-            res.json({
+            return res.json({
                 EC: 0,
                 EM: 'Bình luận thành công!',
                 DT: ''
             })
         } catch (error) {
             console.log(error)
-            res.json({
+            return res.json({
                 EC: 1,
                 EM: 'Lỗi server',
                 DT: []
@@ -69,14 +69,14 @@ const commentController = {
             const sql = "delete from Comments where id = ?"
             await pool.query(sql, [id])
 
-            res.json({
+            return res.json({
                 EC: 0,
                 EM: 'Xoá bình luận thành công',
                 DT: []
             })
         } catch (error) {
             console.log(error)
-            res.json({
+            return res.json({
                 EC: 1,
                 EM: 'Lỗi server',
                 DT: []
@@ -91,14 +91,14 @@ const commentController = {
             const sql = "update Comments set content = ? where id = ?"
             await pool.query(sql, [content, id])
 
-            res.json({
+            return res.json({
                 EC: 0,
                 EM: 'Cập nhật bình luận thành công!',
                 DT: []
             })
         } catch (error) {
             console.log(error)
-            res.json({
+            return res.json({
                 EC: 1,
                 EM: 'Lỗi server',
                 DT: []
