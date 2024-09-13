@@ -1,0 +1,8 @@
+0: Thành công (Success)
+1: Lỗi không xác định (General Error)
+100: Lỗi do yêu cầu không hợp lệ (Invalid Request)
+101: Lỗi do xác thực (Authentication Error)
+102: Lỗi do quyền truy cập (Authorization Error)
+103: Lỗi do tồn tại dữ liệu (Data Already Exists)
+200: Lỗi do kết nối cơ sở dữ liệu (Database Error)
+300: Lỗi do ngoại lệ ứng dụng (Application Exception)

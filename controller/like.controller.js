@@ -1,16 +1,16 @@
 const pool = require("../database/index")
+const likeService = require("../service/likeService")
 
 const likeController = {
     likePost: async (req, res) => {
         try {
-            const { userId, postId } = req.body
-            const sql = "insert into Likes (user_id, post_id) values (?, ?)"
-            await pool.query(sql, [userId, postId])
+
+            const data = await likeService.handleLikePost(req.body)
 
             return res.json({
-                EC: 0,
-                EM: 'Thích bài viết thành công!',
-                DT: ''
+                EC: data.EC,
+                EM: data.EM,
+                DT: data.DT
             })
         } catch (error) {
             console.log(error)
@@ -23,14 +23,13 @@ const likeController = {
     },
     unlikePost: async (req, res) => {
         try {
-            const { userId, postId } = req.body
-            const sql = "delete from Likes where post_id = ? and user_id = ?"
-            await pool.query(sql, [postId, userId])
+
+            const data = await likeService.handleUnlikePost(req.body)
 
             return res.json({
-                EC: 0,
-                EM: 'Bỏ thích bài viết thành công!',
-                DT: ''
+                EC: data.EC,
+                EM: data.EM,
+                DT: data.DT
             })
         } catch (error) {
             console.log(error)

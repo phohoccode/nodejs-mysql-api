@@ -1,60 +1,18 @@
 const pool = require("../database/index")
+const postsService = require("../service/postsService")
 
 const postsController = {
     getAll: async (req, res) => {
         try {
-            const [posts] = await pool.query("select * from Posts")
 
-            if (posts.length > 0) {
-                const userIds = posts.map(post => post.user_id);
-                const postIds = posts.map(post => post.id)
+            const data = await postsService.handleGetAllPosts()
 
-                const [users] = await pool.query(
-                    `SELECT id, username FROM Users WHERE id IN (${userIds.join(',')})`
-                );
-                
-                const [comments] = await pool.query(
-                    `SELECT id, post_id, user_id FROM Comments WHERE post_id IN (${postIds.join(',')})`
-                );
+            return res.json({
+                EC: data.EC,
+                EM: data.EM,
+                DT: data.DT
+            })
 
-                const [likes] = await pool.query(
-                    `SELECT id, post_id, user_id FROM Likes WHERE post_id IN (${postIds.join(',')})`
-                )
-
-                const builtDataPosts = posts.map(post => {
-                    const user = users.find(user => user.id === post.user_id);
-                    const countComment = comments.filter(comment => comment.post_id === post.id)
-                    const likePosts = likes.filter(like => like.post_id === post.id)
-                    const finalLikePost = likePosts.map(likePost => {
-                        const user = users.find(user => user.id === likePost.user_id)
-
-                        return {
-                            ...likePost,
-                            userLikePost: user.username
-                        }
-                    })
-                    
-                    return {
-                        ...post,
-                        username: user ? user.username : 'Unknown',
-                        countComment: countComment.length,
-                        finalLikePost
-                    };
-                });
-    
-                return res.json({
-                    EC: 0,
-                    EM: 'Lấy danh sách bài viết thành công!',
-                    DT: builtDataPosts.reverse()
-                })
-            } else {
-                return res.json({
-                    EC: 0,
-                    EM: 'Lấy danh sách bài viết thành công!',
-                    DT: []
-                })
-            }
-          
         } catch (error) {
             console.log(error)
             return res.json({
@@ -64,29 +22,15 @@ const postsController = {
             })
         }
     },
-    getById: async (req, res) => {
-        try {
-            const { id } = req.params
-            const [rows, fields] = await pool.query("select * from posts where id = ?", [id])
-            return res.json({
-                data: rows
-            })
-        } catch (error) {
-            console.log(error)
-            return res.json({
-                status: "error"
-            })
-        }
-    },
     create: async (req, res) => {
         try {
-            const { id, title, content } = req.body
-            const sql = "insert into Posts (user_id, title, content) values (?,?, ?)"
-            const [rows, fields] = await pool.query(sql, [id, title, content])
+
+            const data = await postsService.handleCreatePost(req.body)
+
             return res.json({
-                EC: 0,
-                EM: 'Tạo bài viết thành công',
-                DT: []
+                EC: data.EC,
+                EM: data.EM,
+                DT: data.DT
             })
         } catch (error) {
             console.log(error)
@@ -100,16 +44,19 @@ const postsController = {
     },
     update: async (req, res) => {
         try {
-            const { title, content } = req.body
-            const { id } = req.params
 
-            const sql = "update Posts set title = ?, content = ? where id = ?"
-            await pool.query(sql, [title, content, id])
+            const rawdata = {
+                id: req.params.id,
+                title: req.body.title,
+                content: req.body.content
+            }
+
+            const data = await postsService.handleUpdatePost(rawdata)
 
             return res.json({
-                EC: 0,
-                EM: 'Cập nhật bài viết thành công!',
-                DT: []
+                EC: data.EC,
+                EM: data.EM,
+                DT: data.DT
             })
         } catch (error) {
             console.log(error)
@@ -122,15 +69,23 @@ const postsController = {
     },
     delete: async (req, res) => {
         try {
-            const { id } = req.params
+            // const { id } = req.params
 
-            const sql = "delete from Posts where id = ?"
-            await pool.query(sql, [id])
+            // const sql = "delete from Posts where id = ?"
+            // await pool.query(sql, [id])
+
+            // return res.json({
+            //     EC: 0,
+            //     EM: 'Xoá bài viết thành công',
+            //     DT: []
+            // })
+
+            const data = await postsService.handleDeletePost(req.params.id)
 
             return res.json({
-                EC: 0,
-                EM: 'Xoá bài viết thành công',
-                DT: []
+                EC: data.EC,
+                EM: data.EM,
+                DT: data.DT
             })
         } catch (error) {
             console.log(error)

@@ -1,38 +1,17 @@
 const pool = require("../database/index")
+const commentService = require("../service/commentService")
 
 const commentController = {
     getAllComments: async (req, res) => {
         try {
-            const { id } = req.params
 
-            const [comments] = await pool.query(`select * from Comments where post_id = ${id}`)
+            const data = await commentService.handleGetAllComments(req.params.id)
 
-            if (comments.length > 0) {
-
-                const userIds = comments.map(comment => comment.user_id);
-                const [users] = await pool.query(
-                    `SELECT id, username FROM Users WHERE id IN (${userIds.join(',')})`
-                );
-
-                const commentsWithUsername = comments.map(comment => {
-                    const user = users.find(user => user.id === comment.user_id);
-                    return {
-                        ...comment,
-                        username: user ? user.username : 'Unknown'
-                    };
-                });
-                return res.json({
-                    EC: 0,
-                    EM: 'Lấy danh sách bình luận thành công!',
-                    DT: commentsWithUsername
-                })
-            } else {
-                return res.json({
-                    EC: 0,
-                    EM: 'Lấy danh sách bình luận thành công!',
-                    DT: []
-                })
-            }
+            return res.json({
+                EC: data.EC,
+                EM: data.EM,
+                DT: data.DT
+            })
         } catch (error) {
             console.log(error)
             return res.json({
@@ -44,14 +23,13 @@ const commentController = {
     },
     createComment: async (req, res) => {
         try {
-            const { userId, postId, content } = req.body
-            const sql = "insert into Comments (post_id, user_id, content) value (?,?,?)"
-            await pool.query(sql, [postId, userId, content])
+
+            const data = await commentService.handleCreateComment(req.body)
 
             return res.json({
-                EC: 0,
-                EM: 'Bình luận thành công!',
-                DT: ''
+                EC: data.EC,
+                EM: data.EM,
+                DT: data.DT
             })
         } catch (error) {
             console.log(error)
@@ -64,15 +42,13 @@ const commentController = {
     },
     deleteComment: async (req, res) => {
         try {
-            const { id } = req.params
 
-            const sql = "delete from Comments where id = ?"
-            await pool.query(sql, [id])
+            const data = await commentService.handleDeleteComment(req.params.id)
 
             return res.json({
-                EC: 0,
-                EM: 'Xoá bình luận thành công',
-                DT: []
+                EC: data.EC,
+                EM: data.EM,
+                DT: data.DT
             })
         } catch (error) {
             console.log(error)
@@ -85,16 +61,18 @@ const commentController = {
     },
     updateComment: async (req, res) => {
         try {
-            const { content } = req.body
-            const { id } = req.params
 
-            const sql = "update Comments set content = ? where id = ?"
-            await pool.query(sql, [content, id])
+            const rawData = {
+                id: req.params.id,
+                content: req.body.content
+            }
+
+            const data = await commentService.handleUpdateComment(rawData)
 
             return res.json({
-                EC: 0,
-                EM: 'Cập nhật bình luận thành công!',
-                DT: []
+                EC: data.EC,
+                EM: data.EM,
+                DT: data.DT
             })
         } catch (error) {
             console.log(error)

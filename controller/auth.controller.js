@@ -1,37 +1,23 @@
 require('dotenv').config()
-const pool = require("../database/index")
 const jwt = require('jsonwebtoken')
+
+const authService = require('../service/authService')
 
 const authController = {
     register: async (req, res) => {
         try {
-            const { email, password, username } = req.body.data
-            const [user,] = await pool.query("select * from Users where email = ?", [email])
-            if (user[0]) return res.json({ error: "Email already exists!" })
+            const data = await authService.handleRegister(req.body.data)
 
-            // const hash = await bcrypt.hash(password, 10)
-
-            const sql = "insert into Users (email, password, username) values (?, ?, ?)"
-            const [rows, fields] = await pool.query(sql, [email, password, username])
-
-            if (rows.affectedRows) {
-                return res.json({
-                    EC: 0,
-                    EM: 'Đăng ký thành công!',
-                    DT: ''
-                })
-            } else {
-                return res.json({
-                    EC: 1,
-                    EM: 'Đăng ký không thành công!',
-                    DT: ''
-                })
-            }
+            return res.json({
+                EC: data.EC,
+                EM: data.EM,
+                DT: data.DT
+            })
 
         } catch (error) {
             console.log(error)
             return res.json({
-                EC: -1,
+                EC: 300,
                 EM: 'Lỗi server!',
                 DT: ''
             })
@@ -39,39 +25,29 @@ const authController = {
     },
     login: async (req, res) => {
         try {
-            const { email, password } = req.body.data
-            const [user,] = await pool.query("select * from Users where email = ? and password = ?", [email, password])
+            const data = await authService.handleLogin(req.body.data)
 
-            console.log(user[0]);
-            if (user[0]) {
+            if (+data.EC === 0) {
+                
                 const payload = {
-                    id: user[0].id,
-                    email: user[0].email,
-                    username: user[0].username,
+                    id: data.DT.id,
+                    email: data.DT.email,
+                    username: data.DT.username,
                 }
-
-                const token =
-                    jwt.sign(payload, process.env.TOKEN_PAYLOAD, { expiresIn: '24h' })
-
-                // cookie sống được trong 24h
-                res.cookie('phohoccode', token, { httpOnly: true, maxAge: 86400000  });
-
-                return res.status(200).json({
-                    EC: 0,
-                    EM: 'Đăng nhập thành công!',
-                    DT: ''
-                })
-            } else {
-                return res.json({
-                    EC: -1,
-                    EM: 'Email hoặc mật khẩu không đúng!',
-                    DT: ''
-                })
+    
+                const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '24h' })
+                res.cookie(process.env.KEY_NAME, token, { httpOnly: true, maxAge: 86400000 });
             }
+
+            return res.json({
+                EC: data.EC,
+                EM: data.EM,
+                DT: data.DT
+            })
         } catch (error) {
             console.log(error)
             return res.json({
-                EC: -1,
+                EC: 300,
                 EM: 'Lỗi server!',
                 DT: ''
             })
@@ -79,16 +55,16 @@ const authController = {
     },
     logout: (req, res) => {
         try {
-            res.clearCookie("phohoccode")
-            return res.status(200).json({
-                EM: 'Đăng xuất thành công',
+            res.clearCookie(process.env.KEY_NAME)
+            return res.json({
+                EM: 'Đăng xuất thành công!',
                 EC: 0,
                 DT: ''
             })
         } catch (error) {
             console.log(error)
             return res.json({
-                EC: -1,
+                EC: 300,
                 EM: 'Lỗi server!',
                 DT: ''
             })
@@ -97,38 +73,38 @@ const authController = {
     decodeToken: (req, res) => {
         try {
             const cookies = req.cookies
-            const key = process.env.TOKEN_PAYLOAD
+            const token = cookies.phohoccode
 
-            if (!cookies.phohoccode) {
+            if (!token) {
                 console.log('Token không tồn tại!')
                 return res.json({
-                    EC: 1,
+                    EC: 100,
                     EM: 'Token không tồn tại!',
                     DT: ''
                 })
             }
 
-            const decoded = jwt.verify(cookies.phohoccode, key)
+            const decoded = jwt.verify(token, process.env.JWT_SECRET)
 
-            if (decoded) {
+            if (!decoded) {
                 return res.json({
-                    EC: 0,
-                    EM: 'Xác minh người dùng thành công',
-                    DT: {
-                        account: decoded
-                    }
-                })
-            } else {
-                return res.json({
-                    EC: -2,
+                    EC: 101,
                     EM: 'Xác minh người dùng thất bại!',
                     DT: ''
                 })
             }
+
+            return res.json({
+                EC: 0,
+                EM: 'Xác minh người dùng thành công',
+                DT: {
+                    account: decoded
+                }
+            })
         } catch (error) {
             console.log(error)
             return res.json({
-                EC: -1,
+                EC: 300,
                 EM: 'Lỗi server!',
                 DT: ''
             })
