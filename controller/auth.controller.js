@@ -33,6 +33,9 @@ const authController = {
                     id: data.DT.id,
                     email: data.DT.email,
                     username: data.DT.username,
+                    phone: data.DT.phone,
+                    address: data.DT.address,
+                    gender: data.DT.gender
                 }
     
                 const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '24h' })

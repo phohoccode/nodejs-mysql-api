@@ -46,9 +46,11 @@ const postsController = {
         try {
 
             const rawdata = {
-                id: req.params.id,
+                postId: req.body.id,
+                userId: req.body.userId,
                 title: req.body.title,
-                content: req.body.content
+                content: req.body.content,
+                images: req.body.images
             }
 
             const data = await postsService.handleUpdatePost(rawdata)
@@ -69,17 +71,6 @@ const postsController = {
     },
     delete: async (req, res) => {
         try {
-            // const { id } = req.params
-
-            // const sql = "delete from Posts where id = ?"
-            // await pool.query(sql, [id])
-
-            // return res.json({
-            //     EC: 0,
-            //     EM: 'Xoá bài viết thành công',
-            //     DT: []
-            // })
-
             const data = await postsService.handleDeletePost(req.params.id)
 
             return res.json({
@@ -96,7 +87,6 @@ const postsController = {
             })
         }
     }
-
 }
 
 module.exports = postsController

@@ -18,6 +18,7 @@ const postsService = {
                 GROUP BY Posts.id                
             `
 
+
             const sqlPostsLikeData = `
                 select 
                     Users.id as user_id, Users.username,
@@ -28,23 +29,36 @@ const postsService = {
                     Likes.post_id = Posts.id
             `
 
+            const sqlPostsImages = `
+                select Images.url, Images.post_id            
+                from Posts, Images, Users
+                where Posts.id = Images.post_id and
+                    Users.id = Images.user_id
+            `
+
             const [postsData] = await pool.query(sqlpostsData)
             const [postsLikeData] = await pool.query(sqlPostsLikeData)
+            const [imagesData] = await pool.query(sqlPostsImages)
 
             const finalPostData = postsData.map(post => {
                 const usersLikePost =
                     postsLikeData.filter(postLike => post.post_id === postLike.post_id)
+                const imagesByPost =
+                    imagesData.filter(image => post.post_id === image.post_id)
 
                 return {
                     ...post,
-                    usersLikePost
+                    usersLikePost,
+                    images: imagesByPost
                 }
             })
+
+            console.log('finalPostData', finalPostData)
 
             return {
                 EC: 0,
                 EM: 'Lấy danh sách bài viết thành công!',
-                DT: finalPostData.reverse()
+                DT: finalPostData
             }
 
         } catch (error) {
@@ -58,6 +72,7 @@ const postsService = {
     },
     handleCreatePost: async (rawdata) => {
         try {
+
             const sql = "insert into Posts (user_id, title, content) values (?,?, ?)"
             const [rows] = await pool.query(sql, [rawdata.id, rawdata.title, rawdata.content])
 
@@ -66,6 +81,21 @@ const postsService = {
                     EC: 1,
                     EM: 'Tạo bài viết thất bại!',
                     DT: ''
+                }
+            }
+
+            if (rawdata.images.length > 0) {
+                const sqlInsertImages = "INSERT INTO Images (url, user_id, post_id) VALUES ?";
+                const values = rawdata.images.map(image => [image, rawdata.id, rows.insertId]);
+
+                const [rowsImages] = await pool.query(sqlInsertImages, [values]);
+
+                if (!rowsImages.affectedRows) {
+                    return {
+                        EC: 1,
+                        EM: 'Thêm ảnh thất thất bại!',
+                        DT: ''
+                    }
                 }
             }
 
@@ -87,13 +117,47 @@ const postsService = {
         try {
 
             const sql = "update Posts set title = ?, content = ? where id = ?"
-            const [rows] = await pool.query(sql, [rawdata.title, rawdata.content, rawdata.id])
+            const [rows] = await pool.query(sql, [rawdata.title, rawdata.content, rawdata.postId])
 
             if (!rows.affectedRows) {
                 return {
                     EC: 1,
                     EM: 'Cập nhật bài viết thất bại!',
                     DT: ''
+                }
+            }
+
+            if (rawdata.images && rawdata.images.length >= 0) {
+
+                const [images] = await pool.query("select * from Images where post_id = ?", [rawdata.postId])
+
+
+                if (images.length > 0) {
+                    const sql = "delete from Images where post_id = ?"
+                    const [rows] = await pool.query(sql, [rawdata.postId])
+
+                    if (!rows.affectedRows) {
+                        return {
+                            EC: 1,
+                            EM: 'Xoá ảnh thất bại!',
+                            DT: ''
+                        }
+                    }
+                }
+
+                if (rawdata.images.length > 0) {
+
+                    const sqlInsertImages = "INSERT INTO Images (url, user_id, post_id) VALUES ?";
+                    const values = rawdata.images.map(image => [image, rawdata.userId, rawdata.postId]);
+                    const [rowsImages] = await pool.query(sqlInsertImages, [values]);
+
+                    if (!rowsImages.affectedRows) {
+                        return {
+                            EC: 1,
+                            EM: 'Thêm ảnh thất thất bại!',
+                            DT: ''
+                        }
+                    }
                 }
             }
 
@@ -112,8 +176,8 @@ const postsService = {
         }
     },
     handleDeletePost: async (postId) => {
-        try {   
-            
+        try {
+
             const sql = "delete from Posts where id = ?"
             const [rows] = await pool.query(sql, [postId])
 

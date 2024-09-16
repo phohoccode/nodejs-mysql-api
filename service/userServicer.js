@@ -3,7 +3,7 @@ const pool = require("../database/index")
 const userService = {
     handleChangePassword: async (rawdata) => {
         try {
-            
+
             const sql = "select * from Users where id = ?"
             const [users] = await pool.query(sql, [rawdata.idUser])
 
@@ -51,7 +51,7 @@ const userService = {
     },
     handleChangeInfoUser: async (rawdata) => {
         try {
-            
+
             const sql = "select * from Users where id = ?"
             const [users] = await pool.query(sql, [rawdata.id])
 
@@ -63,8 +63,21 @@ const userService = {
                 }
             }
 
-            const sqlUpdate = "update Users set username = ?, email = ? where id = ?"
-            const [rows] = await pool.query(sqlUpdate, [rawdata.username, rawdata.email, rawdata.id])
+            const sqlUpdate = `
+                update Users 
+                set 
+                    username = ?, 
+                    email = ?,
+                    phone = ?,
+                    address = ?,
+                    gender = ? 
+                where id = ?
+            `
+
+            const { email, username, phone, address, gender, id } = rawdata
+
+            const [rows] =
+                await pool.query(sqlUpdate, [username, email, phone, address, gender, id])
 
             if (!rows.affectedRows) {
                 return {

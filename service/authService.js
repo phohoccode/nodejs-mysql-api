@@ -6,8 +6,10 @@ const authService = {
     handleRegister: async (rawdata) => {
 
         try {
+            const { email, password, username } = rawdata
+
             const sql = "select * from Users where email = ?"
-            const [users] = await pool.query(sql, [rawdata.emaail])
+            const [users] = await pool.query(sql, [email])
 
             if (users[0]) {
                 return {
@@ -17,9 +19,12 @@ const authService = {
                 }
             }
 
-            const sqlInsert = "insert into Users (email, password, username) values (?, ?, ?)"
+            const sqlInsert = `
+                insert into Users (email, password, username, phone, address, gender) 
+                values (?, ?, ?, ?, ?, ?)
+            `
             const [rows] =
-                await pool.query(sqlInsert, [rawdata.email, rawdata.password, rawdata.username])
+                await pool.query(sqlInsert, [email, password, username, '', '', 0])
 
             if (!rows.affectedRows) {
                 return {
