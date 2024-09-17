@@ -14,7 +14,7 @@ const authService = {
             if (users[0]) {
                 return {
                     EC: 103,
-                    EM: 'Địa chỉ email đã tồn tại',
+                    EM: 'Địa chỉ email đã tồn tại!',
                     DT: ''
                 }
             }
@@ -29,14 +29,14 @@ const authService = {
             if (!rows.affectedRows) {
                 return {
                     EC: 1,
-                    EM: 'Đăng ký không thành công!',
+                    EM: 'Đăng ký tài khoản thất bại!',
                     DT: ''
                 }
             }
 
             return {
                 EC: 0,
-                EM: 'Đăng ký thành công!',
+                EM: 'Đăng ký tài khoản thành công!',
                 DT: ''
             }
         } catch (error) {

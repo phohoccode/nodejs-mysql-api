@@ -29,7 +29,7 @@ const userService = {
             if (!rows.affectedRows) {
                 return {
                     EC: 1,
-                    EM: 'Đổi mật khẩu không thành cong!',
+                    EM: 'Đổi mật khẩu thất bại!',
                     DT: ''
                 }
             }
@@ -82,14 +82,14 @@ const userService = {
             if (!rows.affectedRows) {
                 return {
                     EC: 1,
-                    EM: 'Cập nhật thông tin thất bại!',
+                    EM: 'Cập nhật thông tin người dùng thất bại!',
                     DT: ''
                 }
             }
 
             return {
                 EC: 0,
-                EM: 'Cập nhật thông tin thành công!',
+                EM: 'Cập nhật thông tin người dùng thành công!',
                 DT: ''
             }
 

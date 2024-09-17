@@ -16,7 +16,7 @@ pool.getConnection((err, conn) => {
         console.log(err)
         return
     }
-    console.log("Kết nối dữ liệu thành công!")
+    console.log("Kết nối cơ sở dữ liệu thành công!")
 })
 
 module.exports = pool.promise()

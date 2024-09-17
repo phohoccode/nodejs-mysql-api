@@ -15,9 +15,9 @@ const postsService = {
                 FROM Users
                 JOIN Posts ON Users.id = Posts.user_id
                 LEFT JOIN Comments ON Posts.id = Comments.post_id
-                GROUP BY Posts.id                
+                GROUP BY Posts.id
+                order by Posts.id desc                 
             `
-
 
             const sqlPostsLikeData = `
                 select 
@@ -52,8 +52,6 @@ const postsService = {
                     images: imagesByPost
                 }
             })
-
-            console.log('finalPostData', finalPostData)
 
             return {
                 EC: 0,

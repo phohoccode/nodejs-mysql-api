@@ -79,10 +79,10 @@ const authController = {
             const token = cookies.phohoccode
 
             if (!token) {
-                console.log('Token không tồn tại!')
+                console.log('Người dùng chưa đăng nhập!')
                 return res.json({
                     EC: 100,
-                    EM: 'Token không tồn tại!',
+                    EM: 'Người dùng chưa đăng nhập!',
                     DT: ''
                 })
             }

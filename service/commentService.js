@@ -45,7 +45,7 @@ const commentService = {
 
             return {
                 EC: 0,
-                EM: 'Tạo bình luận thành công!',
+                EM: 'Thêm bình luận thành công!',
                 DT: ''
             }
         } catch (error) {
