@@ -76,6 +76,7 @@ const authController = {
     decodeToken: (req, res) => {
         try {
             const cookies = req.cookies
+            console.log('cookies-client', cookies)
             const token = cookies.phohoccode
 
             if (!token) {
