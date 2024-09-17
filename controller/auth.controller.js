@@ -28,7 +28,7 @@ const authController = {
             const data = await authService.handleLogin(req.body.data)
 
             if (+data.EC === 0) {
-                
+
                 const payload = {
                     id: data.DT.id,
                     email: data.DT.email,
@@ -37,9 +37,15 @@ const authController = {
                     address: data.DT.address,
                     gender: data.DT.gender
                 }
-    
+
                 const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '24h' })
-                res.cookie(process.env.KEY_NAME, token, { httpOnly: true, maxAge: 86400000 });
+                res.cookie(
+                    process.env.KEY_NAME, token, {
+                    httpOnly: true,
+                    secure: true,  
+                    sameSite: 'None',
+                    maxAge: 86400000
+                });
             }
 
             return res.json({

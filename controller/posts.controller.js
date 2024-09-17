@@ -6,7 +6,7 @@ const postsController = {
         try {
 
             const data = await postsService.handleGetAllPosts()
-
+            console.log(data)
             return res.json({
                 EC: data.EC,
                 EM: data.EM,
