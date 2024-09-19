@@ -1,7 +1,7 @@
 require('dotenv').config()
 
 const allowedOrigins = [
-    'https://phosocial-frontend.vercel.app',
+    'https://phosocial.vercel.app',
     'http://localhost:3000',
 ];
 
